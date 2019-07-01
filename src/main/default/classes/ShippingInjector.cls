@@ -60,17 +60,17 @@ public abstract class ShippingInjector {
     }
 
     /**
-    * Parses Service_Implementations__c custom settings and returns a list of shipping service implemenation names
+    * Parses Service_Implementations__mdt custom metadata and returns a list of shipping service implemenation names
     * @return list of list of shipping service implemenation names (without Impl suffix)
     */
     @TestVisible
     private static List<String> getImplementationNames() {
-        // Retrieve comma delimited list of implementations from a custom setting list
-        Service_Implementations__c settings = Service_Implementations__c.getInstance('ShippingImplementations');
+        // Retrieve comma delimited list of implementations from custom metadata
+        ServiceImplementationSettings.Metadata settings = ServiceImplementationSettings.getInstance();
         // Parse and populate a list of implementation names (DHL, FedEx...)
         List<String> implNames = new List<String>();
-        if (settings != null && settings.Value__c != null) {
-            for (String name : settings.Value__c.split(',')) {
+        if (settings.shipping != null) {
+            for (String name : settings.shipping.split(',')) {
                 name = name.trim();
                 if (name.length() > 0) {
                     implNames.add(name);

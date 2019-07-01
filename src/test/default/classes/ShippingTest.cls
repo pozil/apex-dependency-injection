@@ -4,17 +4,14 @@ public class ShippingTest {
     private final static String SETTINGS_VALID_IMPLEMENTATIONS = 'DHL,FedEx';
 
 
-    private static void setImplementationSetting(String implementations) {
-        Service_Implementations__c settings = Service_Implementations__c.getInstance('ShippingImplementations');
-        if (settings == null) {
-            settings = new Service_Implementations__c(Name='ShippingImplementations');
-        }
-        settings.value__c = implementations;
-        upsert settings;
+    private static void setShippingImplementationSetting(String implementations) {
+        ServiceImplementationSettings.Metadata settings = new ServiceImplementationSettings.Metadata();
+        settings.shipping = implementations;
+        ServiceImplementationSettings.settings = settings;
     }
 
     @isTest static void loadImplementations_works() {
-        setImplementationSetting(SETTINGS_VALID_IMPLEMENTATIONS);
+        setShippingImplementationSetting(SETTINGS_VALID_IMPLEMENTATIONS);
         
         Map<String, Type> implMap = ShippingInjector.loadImplementations();
 
@@ -25,7 +22,7 @@ public class ShippingTest {
     }
 
     @isTest static void loadImplementations_fails_with_missing_implementation() {
-        setImplementationSetting('Missing');
+        setShippingImplementationSetting('Missing');
         
         try {
             ShippingInjector.loadImplementations();
@@ -36,7 +33,7 @@ public class ShippingTest {
     }
 
     @isTest static void loadImplementations_fails_with_invalid_implementation() {
-        setImplementationSetting('InvalidShipping');
+        setShippingImplementationSetting('InvalidShipping');
         
         try {
             ShippingInjector.loadImplementations();
@@ -47,7 +44,7 @@ public class ShippingTest {
     }
 
     @isTest static void getDefaultService_works() {
-        setImplementationSetting(SETTINGS_VALID_IMPLEMENTATIONS);
+        setShippingImplementationSetting(SETTINGS_VALID_IMPLEMENTATIONS);
         
         ShippingService service = ShippingInjector.getDefaultService();
 
@@ -55,6 +52,8 @@ public class ShippingTest {
     }
 
     @isTest static void getDefaultService_fails_when_no_implementation_defined() {       
+        setShippingImplementationSetting('');
+
         try {
             ShippingService service = ShippingInjector.getDefaultService();
             System.assert(false, 'ShippingInjector.getDefaultService() should fail when no implementation is defined');
@@ -65,7 +64,7 @@ public class ShippingTest {
     }
 
     @isTest static void getService_works() {
-        setImplementationSetting(SETTINGS_VALID_IMPLEMENTATIONS);
+        setShippingImplementationSetting(SETTINGS_VALID_IMPLEMENTATIONS);
         
         ShippingService service = ShippingInjector.getService('FedEx');
 
@@ -73,6 +72,8 @@ public class ShippingTest {
     }
 
     @isTest static void getService_fails_with_unknown_implementation() {
+        setShippingImplementationSetting(SETTINGS_VALID_IMPLEMENTATIONS);
+
         try {
             ShippingInjector.getService('SomeUnknownImplementation');
             System.assert(false, 'ShippingInjector.getService() should fail with unknonw implementation');
