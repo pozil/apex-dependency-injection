@@ -6,7 +6,7 @@ This repository demonstrates Apex Dependency Injection with a sample shipping se
 ## Configuration
 
 The sample shipping service provides two mock implementations: FedEx and DHL.<br/>
-The service implementations are configured in a `Service_Implementations__c` custom settings list. The `ShippingImplementations` key of the custom settings must map to a comma-delimited list of implementations such as `DHL,FedEx`.<br/>
+The service implementations are configured in a `Service_Implementations__mdt` custom metadata. The `Shipping__c` key of the custom metadata must map to a comma-delimited list of implementations such as `DHL,FedEx`.<br/>
 The injector uses that list to load the service implementation classes with an `Impl` suffix (`DHLImpl` and `FedExImpl`).
 
 
@@ -17,7 +17,7 @@ The service can be accessed via the `ShippingInjector` class in two ways:
 **Option 1: Using the default implementation**
 
 ```apex
-// Get the first implementation configured in Service_Implementations__c custom settings
+// Get the first implementation configured in Service_Implementations__c custom metadata
 ShippingService service = ShippingInjector.getDefaultService(); 
 // Assuming that the default implementaiton is DHL
 String trackingNumber = service.generateTrackingNumber(); // => DHL-XXXX
