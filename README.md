@@ -1,6 +1,6 @@
 # Apex Dependency Injection
 
-This repository demonstrates Apex Dependency Injection with a sample shipping service (`ShippingService`) that allows to generate tracking numbers.
+This repository demonstrates [Apex Dependency Injection](https://developer.salesforce.com/blogs/2019/07/breaking-runtime-dependencies-with-dependency-injection) with a sample shipping service (`ShippingService`) that allows to generate tracking numbers.
 
 
 ## Configuration
