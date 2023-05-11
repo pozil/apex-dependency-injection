@@ -5,6 +5,6 @@ public class DHLImplTest {
 
         String trackingNumber = service.generateTrackingNumber();
         
-        System.assert(trackingNumber.startsWith('DHL-'));
+        Assert.isTrue(trackingNumber.startsWith('DHL-'));
     }
 }

@@ -1,85 +1,57 @@
 public abstract class ShippingInjector {
-    // Eagerly load implementations (this could also be done lazily when service is requested)
-    private static final Map<String, Type> implementations = loadImplementations();
-
     /**
-    * Retrieves the default service implementation (the first one configured in the custom settings)
-    * @throws UnknownImplementationException if no implementation is configured
+    * Retrieves the default service implementation as configured in
+    * the Service_Implementation__mdt custom metadata type
+    * @throws ServiceMetadataException if custom metadata is not correctly set
+    * @throws UnknownImplementationException if configured service name is not found
     */
     public static ShippingService getDefaultService() {
-        if (implementations.size() == 0) {
-            throw new UnknownImplementationException('Could not find Shipping default implementation: no implementations configured.');
-        }
-        Type defaultImp = implementations.values()[0];
-        return (ShippingService) defaultImp.newInstance();
+        String defaultServiceName = getDefaultServiceName();
+        return getService(defaultServiceName);
     }
 
     /**
     * Retrieves the specified service implementation
-    * @param implName the implementation name without the 'Impl' suffix
+    * @param serviceName the service implementation class name
     * @throws UnknownImplementationException if requested implementation is not found
+    * @return an instance of the service
     */
-    public static ShippingService getService(String implName) {
-        if (!implementations.containsKey(implName)) {
-            throw new UnknownImplementationException('Unkown Shipping implementation: '+ implName);
+    public static ShippingService getService(String serviceName) {
+        Set<String> shippingServicesNames = getImplementationNames();
+        if (!shippingServicesNames.contains(serviceName)) {
+            throw new UnknownImplementationException('Could not find shipping service implementation: '+ serviceName +'.');
         }
-        return (ShippingService) implementations.get(implName).newInstance();
+        Type serviceType = Type.forName(serviceName);
+        return (ShippingService) serviceType.newInstance();
     }
 
     /**
-    * Loads shipping service implemenations based on Service_Implementations__c custom settings
-    * @returns map of implementation name to class
-    * @throws UnknownImplementationException if an implementation is nof found
-    * @throws InvalidImplementationException if an implementation class does not implement ShippingService
+    * Retrieve the names of all classes that implement the ShippingService interface
+    * @return set of class names that implement ShippingService
     */
-    @TestVisible
-    private static Map<String,Type> loadImplementations() {
-        // Get implementation names (DHL, FedEx...)
-        List<String> implNames = getImplementationNames();
-
-        // Populate a map of implementation names to concrete implementations
-        // using Type.forName for each implementation name
-        Map<String,Type> implementations = new Map<String,Type>();
-        for (String implName : implNames) {
-            String className = implName +'Impl';
-            // Attempt to load the implementation class
-            Type serviceType = Type.forName(className);
-            if (serviceType == null) {
-                throw new UnknownImplementationException('Could not load '+ className +' class: class not found');
-            }
-            // Check that class implements the service interface
-            else if (!(serviceType.newInstance() instanceof ShippingService)) {
-                throw new InvalidImplementationException('Could not load '+ className +' class: class does not implement ShippingService');
-            }
-            else {
-                // Save implementation
-                implementations.put(implName, serviceType);
-            }
-        }
-        return implementations;
-    }
-
-    /**
-    * Parses Service_Implementations__mdt custom metadata and returns a list of shipping service implemenation names
-    * @return list of list of shipping service implemenation names (without Impl suffix)
-    */
-    @TestVisible
-    private static List<String> getImplementationNames() {
-        // Retrieve comma delimited list of implementations from custom metadata
-        ServiceImplementationSettings.Metadata settings = ServiceImplementationSettings.getInstance();
-        // Parse and populate a list of implementation names (DHL, FedEx...)
-        List<String> implNames = new List<String>();
-        if (settings.shipping != null) {
-            for (String name : settings.shipping.split(',')) {
-                name = name.trim();
-                if (name.length() > 0) {
-                    implNames.add(name);
-                }
-            }
+    public static Set<String> getImplementationNames() {
+        Set<String> implNames = new Set<String>();
+        for (ApexTypeImplementor implementor : [
+                SELECT ClassName
+                FROM ApexTypeImplementor 
+                WHERE InterfaceName = 'ShippingService' AND IsConcrete=true
+                ]) {
+            implNames.add(implementor.ClassName);
         }
         return implNames;
     }
 
+    private static String getDefaultServiceName() {
+        List<Service_Implementation__mdt> implementationSettings = Service_Implementation__mdt.getAll().values();
+        if (implementationSettings.size() == 0) {
+            throw new ServiceMetadataException('Could not find a Service_Implementation__mdt record');
+        }
+        if (implementationSettings.size() > 1) {
+            throw new ServiceMetadataException('Found more than one Service_Implementation__mdt record');
+        }
+        return implementationSettings.get(0).Shipping__c;
+    }
+
     public class UnknownImplementationException extends Exception {}
-    public class InvalidImplementationException extends Exception {}    
+    public class ServiceMetadataException extends Exception {}
 }

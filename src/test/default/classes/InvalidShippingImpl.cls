@@ -1,2 +1,0 @@
-@isTest
-public class InvalidShippingImpl {}

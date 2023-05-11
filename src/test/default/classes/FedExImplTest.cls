@@ -5,6 +5,6 @@ public class FedExImplTest {
 
         String trackingNumber = service.generateTrackingNumber();
         
-        System.assert(trackingNumber.startsWith('FEX-'));
+        Assert.isTrue(trackingNumber.startsWith('FEX-'));
     }
 }

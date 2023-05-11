@@ -1,14 +1,11 @@
 # Apex Dependency Injection
 
-This repository demonstrates Apex Dependency Injection with a sample shipping service that allows to generate tracking numbers.
+This repository demonstrates Apex Dependency Injection with a sample shipping service (`ShippingService`) that allows to generate tracking numbers.
 
 
 ## Configuration
 
-The sample shipping service provides two mock implementations: FedEx and DHL.<br/>
-The service implementations are configured in a `Service_Implementations__mdt` custom metadata. The `Shipping__c` key of the custom metadata must map to a comma-delimited list of implementations such as `DHL,FedEx`.<br/>
-The injector uses that list to load the service implementation classes with an `Impl` suffix (`DHLImpl` and `FedExImpl`).
-
+This sample provides two shipping service mock implementations: `FedExImpl` and `DHLImpl`.
 
 ## Usage
 
@@ -16,31 +13,32 @@ The service can be accessed via the `ShippingInjector` class in two ways:
 
 **Option 1: Using the default implementation**
 
+This requires that you set the default service implementation as a `Service_Implementations__mdt` custom metadata record. The `Shipping__c` field of the custom metadata record must map to one of the `ShippingService` implementation class names.
+
 ```apex
-// Get the first implementation configured in Service_Implementations__c custom metadata
+// Get the implementation of the service configured in Service_Implementations__mdt.Shipping__c custom metadata
 ShippingService service = ShippingInjector.getDefaultService(); 
-// Assuming that the default implementaiton is DHL
-String trackingNumber = service.generateTrackingNumber(); // => DHL-XXXX
+String trackingNumber = service.generateTrackingNumber();
+System.debug(trackingNumber); // => DHL-XXXX if DHLImpl is the default
 ```
 
 **Option 2: Using a specific implementation**
 
 ```apex
 // Get the FedEx implementation
-ShippingService service = ShippingInjector.getService('FedEx');
-String trackingNumber = service.generateTrackingNumber(); // => FEX-XXXX
+ShippingService service = ShippingInjector.getService('FedExImpl');
+String trackingNumber = service.generateTrackingNumber();
+System.debug(trackingNumber); // => FEX-XXXX
 ```
-
-Check out the `ShippingTest` test class for more details on how to use the service.
-
 
 ## Installation
 
-Create a scratch org:<br/>
-`sfdx force:org:create -a pattern -s -f config/project-scratch-def.json`
+1. Create a scratch org:
+    ```sh
+    sfdx force:org:create -a apex-di -s -f config/project-scratch-def.json
+    ```
 
-Push source to scratch org:<br/>
-`sfdx force:source:push`
-
-Run Apex tests and get code coverage:<br/>
-`sfdx force:apex:test:run -c -r human -w 10`
+1. Push source to scratch org:
+    ```sh
+    sfdx force:source:push
+    ```
